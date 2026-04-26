@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import easyocr
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 
 st.set_page_config(page_title="Kamera Tercüman", layout="wide")
 st.title("📱 Kamera Tercüman")
@@ -12,10 +12,9 @@ st.write("Kameranızı bir yazıya tutun, anında çeviri gelsin!")
 @st.cache_resource
 def load_models():
     reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)
-    translator = Translator()
-    return reader, translator
+    return reader
 
-reader, translator = load_models()
+reader = load_models()
 
 col1, col2 = st.columns(2)
 with col1:
@@ -47,12 +46,9 @@ if camera_image is not None:
                 with c2:
                     st.markdown("**🔄 Çeviri:**")
                     try:
-                        src = lang_map[source_lang] if source_lang != 'Auto' else 'auto'
                         dest = 'tr' if target_lang == 'Türkçe' else 'en'
-                        if src == dest and src != 'auto':
-                            dest = 'tr' if dest == 'en' else 'en'
-                        translated = translator.translate(text, src=src, dest=dest)
-                        st.success(translated.text)
+                        translated = GoogleTranslator(source='auto', target=dest).translate(text)
+                        st.success(translated)
                     except Exception as e:
                         st.error(f"Hata: {str(e)}")
     else:
