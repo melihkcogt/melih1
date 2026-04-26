@@ -1,4 +1,4 @@
-pimport streamlit as st
+import streamlit as st
 import cv2
 import numpy as np
 from PIL import Image
@@ -11,7 +11,7 @@ st.write("Kameranızı bir yazıya tutun, anında çeviri gelsin!")
 
 @st.cache_resource
 def load_models():
-    reader = easyocr.Reader(['tr','en'], gpu=False)
+    reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)
     translator = Translator()
     return reader, translator
 
@@ -19,9 +19,9 @@ reader, translator = load_models()
 
 col1, col2 = st.columns(2)
 with col1:
-    source_lang = st.selectbox("Kaynak Dil", ['Auto','Türkçe','İngilizce'])
+    source_lang = st.selectbox("Kaynak Dil", ['Auto','İngilizce','Türkçe'])
 with col2:
-    target_lang = st.selectbox("Hedef Dil", ['İngilizce','Türkçe'])
+    target_lang = st.selectbox("Hedef Dil", ['Türkçe','İngilizce'])
 
 lang_map = {'Türkçe':'tr','İngilizce':'en','Auto':'auto'}
 
@@ -48,7 +48,7 @@ if camera_image is not None:
                     st.markdown("**🔄 Çeviri:**")
                     try:
                         src = lang_map[source_lang] if source_lang != 'Auto' else 'auto'
-                        dest = 'en' if target_lang == 'İngilizce' else 'tr'
+                        dest = 'tr' if target_lang == 'Türkçe' else 'en'
                         if src == dest and src != 'auto':
                             dest = 'tr' if dest == 'en' else 'en'
                         translated = translator.translate(text, src=src, dest=dest)
