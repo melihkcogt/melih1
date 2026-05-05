@@ -137,7 +137,6 @@ if st.session_state.sayfa == 'ayarlar':
 # ==================== SAYFA 2: KAMERA + ÇEVİRİ ====================
 elif st.session_state.sayfa == 'kamera':
     
-    # EN ÜSTE BAŞLIK EKLENDİ
     st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
     st.markdown('<div class="nature-subtitle">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
     
@@ -150,7 +149,6 @@ elif st.session_state.sayfa == 'kamera':
     
     reader = load_models()
     
-    # Geri butonu ve Tur Modu başlığı
     col_back, col_title, col_empty = st.columns([1, 3, 1])
     with col_back:
         if st.button("⬅️ Geri"):
@@ -171,11 +169,29 @@ elif st.session_state.sayfa == 'kamera':
     
     st.markdown("### 🌱 Yazıyı Kameraya Tutun")
     
+    # YÖN DÖNDÜRME AYARI
+    st.markdown("**📐 Telefon Yönü:**")
+    yon = st.radio(
+        "Yazı nasıl görünüyor?",
+        ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+    
     camera_image = st.camera_input("📸 Fotoğraf Çek", key="camera_full")
     
     if camera_image is not None:
         with st.spinner("🍂 Metin okunuyor..."):
             image = Image.open(camera_image)
+            
+            # YÖN DÖNDÜRME UYGULA
+            if yon == "Sağa Yatık":
+                image = image.rotate(-90, expand=True)
+            elif yon == "Sola Yatık":
+                image = image.rotate(90, expand=True)
+            elif yon == "Ters (Baş Aşağı)":
+                image = image.rotate(180, expand=True)
+            
             img_array = np.array(image)
             results = reader.readtext(img_array, detail=1)
         
