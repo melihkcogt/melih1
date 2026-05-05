@@ -32,7 +32,14 @@ st.markdown("""
         margin-bottom: 30px;
         font-family: 'Georgia', serif;
     }
-    .nature-card {
+    .nature-line {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
+        margin: 25px 0;
+        border-radius: 2px;
+    }
+    /* Kart stili - tüm st.container'lara uygulanır */
+    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
         background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
         padding: 30px;
@@ -79,12 +86,6 @@ st.markdown("""
         border-radius: 15px;
         color: #f57f17;
     }
-    .nature-line {
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
-        margin: 25px 0;
-        border-radius: 2px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -110,30 +111,27 @@ if st.session_state.sayfa == 'ayarlar':
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     
-    # Ayarlar kartı - doğrudan st.markdown ile başlat
-    st.markdown('<div class="nature-card">', unsafe_allow_html=True)
-    
-    st.markdown("### ⚙️ Tur Ayarlarınızı Seçin")
-    st.write("---")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        source = st.selectbox("🌍 Kaynak Dil", ['Otomatik'] + list(DILLER.keys()))
-    with col2:
-        target = st.selectbox("🎯 Hedef Dil", list(DILLER.keys()), index=1)
-    
-    min_confidence = st.slider("🔍 Min. Güven Skoru", 0.0, 1.0, 0.3)
-    
-    st.write("---")
-    
-    if st.button("🚀 Tura Başla", use_container_width=True):
-        st.session_state.source_lang = source
-        st.session_state.target_lang = target
-        st.session_state.min_confidence = min_confidence
-        st.session_state.sayfa = 'kamera'
-        st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Kart stili otomatik CSS'ten geliyor, extra HTML yok
+    with st.container():
+        st.markdown("### ⚙️ Tur Ayarlarınızı Seçin")
+        st.write("---")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            source = st.selectbox("🌍 Kaynak Dil", ['Otomatik'] + list(DILLER.keys()))
+        with col2:
+            target = st.selectbox("🎯 Hedef Dil", list(DILLER.keys()), index=1)
+        
+        min_confidence = st.slider("🔍 Min. Güven Skoru", 0.0, 1.0, 0.3)
+        
+        st.write("---")
+        
+        if st.button("🚀 Tura Başla", use_container_width=True):
+            st.session_state.source_lang = source
+            st.session_state.target_lang = target
+            st.session_state.min_confidence = min_confidence
+            st.session_state.sayfa = 'kamera'
+            st.rerun()
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
@@ -187,26 +185,23 @@ elif st.session_state.sayfa == 'kamera':
                 
                 st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
                 
-                st.markdown('<div class="nature-card" style="background:rgba(232,245,233,0.95); border:2px solid #81c784;">', unsafe_allow_html=True)
-                
-                c1, c2 = st.columns(2)
-                
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(birlesik_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    try:
-                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                        dest = DILLER.get(st.session_state.target_lang, 'tr')
-                        
-                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                        st.success(translated)
-                    except Exception as e:
-                        st.error(f"🥀 Çeviri hatası: {str(e)}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+                with st.container():
+                    c1, c2 = st.columns(2)
+                    
+                    with c1:
+                        st.markdown("**📝 Orijinal Metin:**")
+                        st.info(birlesik_metin)
+                    
+                    with c2:
+                        st.markdown("**🔄 Çeviri:**")
+                        try:
+                            src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
+                            dest = DILLER.get(st.session_state.target_lang, 'tr')
+                            
+                            translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                            st.success(translated)
+                        except Exception as e:
+                            st.error(f"🥀 Çeviri hatası: {str(e)}")
                 
                 st.write("---")
                 if st.button("🔄 Yeni Fotoğraf Çek", use_container_width=True):
