@@ -38,7 +38,6 @@ st.markdown("""
         margin: 25px 0;
         border-radius: 2px;
     }
-    /* Kart stili - tüm st.container'lara uygulanır */
     div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
         background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
@@ -111,7 +110,6 @@ if st.session_state.sayfa == 'ayarlar':
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     
-    # Kart stili otomatik CSS'ten geliyor, extra HTML yok
     with st.container():
         st.markdown("### ⚙️ Tur Ayarlarınızı Seçin")
         st.write("---")
@@ -139,6 +137,12 @@ if st.session_state.sayfa == 'ayarlar':
 # ==================== SAYFA 2: KAMERA + ÇEVİRİ ====================
 elif st.session_state.sayfa == 'kamera':
     
+    # EN ÜSTE BAŞLIK EKLENDİ
+    st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nature-subtitle">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
+    
     @st.cache_resource
     def load_models():
         reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)
@@ -146,6 +150,7 @@ elif st.session_state.sayfa == 'kamera':
     
     reader = load_models()
     
+    # Geri butonu ve Tur Modu başlığı
     col_back, col_title, col_empty = st.columns([1, 3, 1])
     with col_back:
         if st.button("⬅️ Geri"):
