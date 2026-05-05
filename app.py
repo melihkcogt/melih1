@@ -4,13 +4,22 @@ from PIL import Image
 import easyocr
 from deep_translator import GoogleTranslator
 
-# ==================== TEMA AYARLARI ====================
+# ==================== PWA DESTEĞİ ====================
 st.set_page_config(
-    page_title="Kamera Tercüman Pro",
-    layout="wide"
+    page_title="Kamera Tercüman",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Karanlık mod
+# PWA manifest ve meta etiketleri
+st.markdown("""
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiS2FtZXJhIFRlcmPDvG1hbiIsInNob3J0X25hbWUiOiJUZXJjw7xtYW4iLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiIzI2NzRmYiJ9">
+    <meta name="theme-color" content="#2674fb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+""", unsafe_allow_html=True)
+
+# ==================== TEMA ====================
 dark_mode = st.toggle("🌙 Karanlık Mod", value=False)
 
 if dark_mode:
@@ -24,12 +33,10 @@ if dark_mode:
     """, unsafe_allow_html=True)
 
 # ==================== BAŞLIK ====================
-st.title("📱 Kamera Tercüman Pro")
+st.title("📱 Kamera Tercüman")
 st.caption("Kameranızı bir yazıya tutun, anında çeviri gelsin!")
 
-# ==================== DİL SEÇİMİ (ANA EKRANDA) ====================
-st.write("---")
-
+# ==================== DİL SEÇİMİ ====================
 diller = {
     'Türkçe': 'tr',
     'İngilizce': 'en',
@@ -75,14 +82,12 @@ if camera_image is not None:
         results = reader.readtext(img_array, detail=1)
     
     if results:
-        # TÜM METİNLERİ BİRLEŞTİR
         tum_metinler = []
         for bbox, text, prob in results:
             if prob >= 0.3:
                 tum_metinler.append(text)
         
         if tum_metinler:
-            # Birleştirilmiş metin
             birlesik_metin = " ".join(tum_metinler)
             
             st.success(f"✅ {len(tum_metinler)} metin bloğu bulundu!")
@@ -111,3 +116,4 @@ if camera_image is not None:
 
 st.write("---")
 st.caption("💡 İpucu: Daha iyi sonuç için yazıyı net tutun ve yeterli ışık sağlayın.")
+st.caption("📱 Bu uygulamayı ana ekranınıza ekleyebilirsiniz!")
