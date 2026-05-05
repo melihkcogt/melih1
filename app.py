@@ -4,154 +4,152 @@ from PIL import Image
 import easyocr
 from deep_translator import GoogleTranslator
 
-# ==================== NEON TEMA ====================
+# ==================== DOĞA TEMASI ====================
 st.set_page_config(
     page_title="Melih'in Sanal Tercümanı",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Neon CSS
+# Doğa renkleri CSS
 st.markdown("""
     <style>
-    /* Siyah arka plan */
+    /* Yumuşak yeşil-bej arka plan */
     .stApp {
-        background-color: #0a0a0a;
+        background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%);
     }
     
-    /* Neon yazı efekti */
-    .neon-title {
-        font-size: 48px;
-        font-weight: 900;
-        color: #00ff88;
+    /* Başlık - Orman yeşili */
+    .nature-title {
+        font-size: 44px;
+        font-weight: 700;
+        color: #2e7d32;
         text-align: center;
-        text-shadow: 
-            0 0 10px #00ff88,
-            0 0 20px #00ff88,
-            0 0 40px #00ff88,
-            0 0 80px #00ff88;
-        margin-bottom: 10px;
-        font-family: 'Courier New', monospace;
+        margin-bottom: 5px;
+        font-family: 'Georgia', serif;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     
-    .neon-subtitle {
-        font-size: 20px;
-        color: #ff00ff;
+    /* Alt başlık - Toprak rengi */
+    .nature-subtitle {
+        font-size: 18px;
+        color: #795548;
         text-align: center;
-        text-shadow: 
-            0 0 10px #ff00ff,
-            0 0 20px #ff00ff;
-        margin-bottom: 40px;
-        font-family: 'Courier New', monospace;
+        margin-bottom: 30px;
+        font-family: 'Georgia', serif;
     }
     
-    /* Neon kart */
-    .neon-card {
-        background: rgba(10, 10, 10, 0.9);
-        border: 2px solid #00ff88;
-        border-radius: 15px;
+    /* Doğa kartı - Beyaz, yumuşak gölge */
+    .nature-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
         padding: 25px;
-        margin: 20px 0;
-        box-shadow: 
-            0 0 10px #00ff88,
-            inset 0 0 10px rgba(0, 255, 136, 0.1);
+        margin: 15px 0;
+        box-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
+        border: 1px solid rgba(46, 125, 50, 0.1);
     }
     
-    .neon-card-pink {
-        border: 2px solid #ff00ff;
-        box-shadow: 
-            0 0 10px #ff00ff,
-            inset 0 0 10px rgba(255, 0, 255, 0.1);
+    /* Kamera kartı - Açık yeşil ton */
+    .camera-card {
+        background: rgba(232, 245, 233, 0.9);
+        border: 2px solid #81c784;
+        box-shadow: 0 4px 20px rgba(129, 199, 132, 0.3);
     }
     
-    /* Neon buton */
+    /* Sonuç kartı */
+    .result-card {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #a5d6a7;
+    }
+    
+    /* Buton - Orman yeşili */
     .stButton>button {
-        background: transparent;
-        color: #00ff88;
-        border: 2px solid #00ff88;
-        border-radius: 10px;
+        background: linear-gradient(45deg, #43a047 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
         padding: 15px 40px;
         font-size: 18px;
-        font-weight: bold;
-        text-shadow: 0 0 10px #00ff88;
-        box-shadow: 0 0 15px #00ff88;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
         width: 100%;
-        font-family: 'Courier New', monospace;
+        transition: all 0.3s;
     }
     
     .stButton>button:hover {
-        background: #00ff88;
-        color: #0a0a0a;
-        box-shadow: 0 0 30px #00ff88;
+        background: linear-gradient(45deg, #2e7d32 0%, #1b5e20 100%);
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        transform: translateY(-2px);
     }
     
-    /* Dil seçim */
+    /* Dil seçim - Yaprak yeşili */
     .stSelectbox>div>div {
-        background: #0a0a0a;
-        border: 2px solid #00ccff;
-        border-radius: 10px;
-        color: #00ccff;
-        box-shadow: 0 0 10px #00ccff;
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #81c784;
+        box-shadow: 0 2px 10px rgba(129, 199, 132, 0.2);
     }
     
     /* Sonuç kutuları */
     .stInfo {
-        background: rgba(0, 255, 136, 0.1);
-        border: 1px solid #00ff88;
-        border-radius: 10px;
-        color: #00ff88;
+        background: rgba(232, 245, 233, 0.8);
+        border: 1px solid #81c784;
+        border-radius: 15px;
+        color: #2e7d32;
     }
     
     .stSuccess {
-        background: rgba(0, 255, 136, 0.2);
-        border: 1px solid #00ff88;
-        border-radius: 10px;
-        color: #00ff88;
-        text-shadow: 0 0 5px #00ff88;
+        background: rgba(200, 230, 201, 0.9);
+        border: 1px solid #66bb6a;
+        border-radius: 15px;
+        color: #1b5e20;
     }
     
     .stWarning {
-        background: rgba(255, 165, 0, 0.1);
-        border: 1px solid #ffa500;
-        border-radius: 10px;
-        color: #ffa500;
+        background: rgba(255, 249, 196, 0.8);
+        border: 1px solid #ffd54f;
+        border-radius: 15px;
+        color: #f57f17;
     }
     
-    /* Işık çizgileri */
-    .light-line {
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #00ff88, transparent);
-        margin: 20px 0;
-        box-shadow: 0 0 10px #00ff88;
+    /* Ayırıcı çizgi - Doğal */
+    .nature-line {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
+        margin: 25px 0;
+        border-radius: 2px;
+    }
+    
+    /* Emoji stil */
+    .nature-emoji {
+        font-size: 24px;
+        margin-right: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Karanlık mod (neon'da her zaman karanlık)
-dark_mode = st.toggle("🌙 Karanlık Mod", value=True, disabled=True)
-
 # ==================== BAŞLIK ====================
-st.markdown('<div class="neon-title">📱 MELIH\'IN SANAL TERCUMANİ</div>', unsafe_allow_html=True)
-st.markdown('<div class="neon-subtitle">🌍 SANAL DUNYAMA HOSGELDINIZ</div>', unsafe_allow_html=True)
+st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
+st.markdown('<div class="nature-subtitle">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="light-line"></div>', unsafe_allow_html=True)
+st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
 
 # ==================== DİL KARTI ====================
 with st.container():
-    st.markdown('<div class="neon-card">', unsafe_allow_html=True)
+    st.markdown('<div class="nature-card">', unsafe_allow_html=True)
     
     diller = {
-        'Turkce': 'tr', 'Ingilizce': 'en', 'Almanca': 'de',
-        'Fransizca': 'fr', 'Ispanyolca': 'es', 'Italyanca': 'it',
-        'Portekizce': 'pt', 'Rusca': 'ru', 'Arapca': 'ar',
-        'Cince': 'zh-CN', 'Japonca': 'ja', 'Korece': 'ko'
+        'Türkçe': 'tr', 'İngilizce': 'en', 'Almanca': 'de',
+        'Fransızca': 'fr', 'İspanyolca': 'es', 'İtalyanca': 'it',
+        'Portekizce': 'pt', 'Rusça': 'ru', 'Arapça': 'ar',
+        'Çince': 'zh-CN', 'Japonca': 'ja', 'Korece': 'ko'
     }
     
     col1, col2 = st.columns(2)
     with col1:
-        source_lang = st.selectbox("🌍 KAYNAK DIL", ['Otomatik'] + list(diller.keys()))
+        source_lang = st.selectbox("🌍 Kaynak Dil", ['Otomatik'] + list(diller.keys()))
     with col2:
-        target_lang = st.selectbox("🎯 HEDEF DIL", list(diller.keys()), index=1)
+        target_lang = st.selectbox("🎯 Hedef Dil", list(diller.keys()), index=1)
     
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -165,28 +163,28 @@ reader = load_models()
 
 # ==================== KAMERA KARTI ====================
 with st.container():
-    st.markdown('<div class="neon-card neon-card-pink">', unsafe_allow_html=True)
+    st.markdown('<div class="nature-card camera-card">', unsafe_allow_html=True)
     
-    st.markdown("### 🚀 SANAL DUNYA TURUNA HAZIR MISIN?")
+    st.markdown("### 🌱 Sanal Dünya Turuna Hazır Mısın?")
     
     camera_image = st.camera_input(
-        "TURA BASLA",
+        "🌸 Tura Başla",
         key="camera"
     )
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="light-line"></div>', unsafe_allow_html=True)
+st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
 
 # ==================== SONUÇ KARTI ====================
 if camera_image is not None:
     with st.container():
-        st.markdown('<div class="neon-card">', unsafe_allow_html=True)
+        st.markdown('<div class="nature-card result-card">', unsafe_allow_html=True)
         
         image = Image.open(camera_image)
         img_array = np.array(image)
         
-        with st.spinner("🔍 METIN OKUNUYOR..."):
+        with st.spinner("🍂 Metin okunuyor..."):
             results = reader.readtext(img_array, detail=1)
         
         if results:
@@ -198,16 +196,16 @@ if camera_image is not None:
             if tum_metinler:
                 birlesik_metin = " ".join(tum_metinler)
                 
-                st.success(f"✅ {len(tum_metinler)} METIN BLOKU BULUNDU!")
+                st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
                 
                 c1, c2 = st.columns(2)
                 
                 with c1:
-                    st.markdown("**📝 ORIJINAL METIN:**")
+                    st.markdown("**📝 Orijinal Metin:**")
                     st.info(birlesik_metin)
                 
                 with c2:
-                    st.markdown("**🔄 CEVIRI:**")
+                    st.markdown("**🔄 Çeviri:**")
                     try:
                         src = 'auto' if source_lang == 'Otomatik' else diller[source_lang]
                         dest = diller[target_lang]
@@ -215,14 +213,14 @@ if camera_image is not None:
                         translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
                         st.success(translated)
                     except Exception as e:
-                        st.error(f"CEVIRI HATASI: {str(e)}")
+                        st.error(f"🥀 Çeviri hatası: {str(e)}")
             else:
-                st.warning("❌ YETERINCE NET METIN BULUNAMADI.")
+                st.warning("🍂 Yeterince net metin bulunamadı.")
         else:
-            st.warning("❌ HIC METIN BULUNAMADI. DAHA NET TUTUN.")
+            st.warning("🍂 Hiç metin bulunamadı. Daha net tutun.")
         
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==================== FOOTER ====================
-st.markdown('<div class="light-line"></div>', unsafe_allow_html=True)
-st.caption("💡 TURDA KARSILASTIKLARINI ANLAMAK ICIN YAZIYI NETLESTIR")
+st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
+st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
