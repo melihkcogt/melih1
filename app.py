@@ -2,8 +2,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import easyocr
-import requests
-import json
+from deep_translator import GoogleTranslator
 
 # ==================== SAYFA YAPILANDIRMASI ====================
 st.set_page_config(
@@ -91,55 +90,11 @@ st.markdown("""
 
 # ==================== DİL VERİSİ ====================
 DILLER = {
-    'Türkçe': 'TR', 'İngilizce': 'EN', 'Almanca': 'DE',
-    'Fransızca': 'FR', 'İspanyolca': 'ES', 'İtalyanca': 'IT',
-    'Portekizce': 'PT', 'Rusça': 'RU', 'Arapça': 'AR',
-    'Çince': 'ZH', 'Japonca': 'JA', 'Korece': 'KO',
-    'Lehçe': 'PL', 'Hollandaca': 'NL', 'İsveççe': 'SV'
+    'Türkçe': 'tr', 'İngilizce': 'en', 'Almanca': 'de',
+    'Fransızca': 'fr', 'İspanyolca': 'es', 'İtalyanca': 'it',
+    'Portekizce': 'pt', 'Rusça': 'ru', 'Arapça': 'ar',
+    'Çince': 'zh-CN', 'Japonca': 'ja', 'Korece': 'ko'
 }
-
-# DeepL dil kodları
-DEEPL_DILLER = {
-    'Türkçe': 'TR', 'İngilizce': 'EN-US', 'Almanca': 'DE',
-    'Fransızca': 'FR', 'İspanyolca': 'ES', 'İtalyanca': 'IT',
-    'Portekizce': 'PT-PT', 'Rusça': 'RU', 'Arapça': 'AR',
-    'Çince': 'ZH', 'Japonca': 'JA', 'Korece': 'KO',
-    'Lehçe': 'PL', 'Hollandaca': 'NL', 'İsveççe': 'SV'
-}
-
-# ==================== ÇEVİRİ FONKSİYONLARI ====================
-def deepl_cevir(metin, kaynak, hedef, api_key):
-    """DeepL API ile çeviri"""
-    url = "https://api-free.deepl.com/v2/translate"
-    
-    headers = {
-        "Authorization": f"DeepL-Auth-Key {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "text": [metin],
-        "target_lang": hedef
-    }
-    
-    if kaynak != 'auto':
-        data["source_lang"] = kaynak
-    
-    try:
-        response = requests.post(url, headers=headers, json=data, timeout=10)
-        response.raise_for_status()
-        result = response.json()
-        return result["translations"][0]["text"]
-    except Exception as e:
-        return f"DeepL Hatası: {str(e)}"
-
-def google_cevir(metin, kaynak, hedef):
-    """Google Translate (yedek)"""
-    try:
-        from deep_translator import GoogleTranslator
-        return GoogleTranslator(source=kaynak, target=hedef).translate(metin)
-    except Exception as e:
-        return f"Google Hatası: {str(e)}"
 
 # ==================== SESSION STATE ====================
 if 'sayfa' not in st.session_state:
@@ -169,32 +124,12 @@ if st.session_state.sayfa == 'ayarlar':
         
         min_confidence = st.slider("🔍 Min. Güven Skoru", 0.0, 1.0, 0.3)
         
-        # Çeviri motoru seçimi
-        st.write("---")
-        st.markdown("### 🤖 Çeviri Motoru")
-        
-        ceviri_motoru = st.radio(
-            "Kalite seviyesi seçin:",
-            ["DeepL (En Kaliteli - API Key Gerekli)", "Google (Otomatik - Ücretsiz)"]
-        )
-        
-        api_key = ""
-        if ceviri_motoru == "DeepL (En Kaliteli - API Key Gerekli)":
-            api_key = st.text_input(
-                "🔑 DeepL API Key'inizi girin:",
-                type="password",
-                help="deepl.com/pro-api adresinden ücretsiz alabilirsiniz"
-            )
-            st.info("💡 DeepL API key olmadan Google çevirisi kullanılır")
-        
         st.write("---")
         
         if st.button("🚀 Tura Başla", use_container_width=True):
             st.session_state.source_lang = source
             st.session_state.target_lang = target
             st.session_state.min_confidence = min_confidence
-            st.session_state.ceviri_motoru = ceviri_motoru
-            st.session_state.api_key = api_key
             st.session_state.sayfa = 'kamera'
             st.rerun()
         
@@ -223,14 +158,11 @@ elif st.session_state.sayfa == 'kamera':
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     
-    col_lang1, col_lang2, col_motor = st.columns(3)
+    col_lang1, col_lang2 = st.columns(2)
     with col_lang1:
         st.info(f"🌍 Kaynak: {st.session_state.source_lang}")
     with col_lang2:
         st.info(f"🎯 Hedef: {st.session_state.target_lang}")
-    with col_motor:
-        motor = "DeepL" if "DeepL" in st.session_state.get('ceviri_motoru', '') else "Google"
-        st.info(f"🤖 Motor: {motor}")
     
     st.write("---")
     
@@ -266,32 +198,14 @@ elif st.session_state.sayfa == 'kamera':
                     
                     with c2:
                         st.markdown("**🔄 Çeviri:**")
-                        
-                        # ÇEVİRİ MOTORU SEÇİMİ
-                        if "DeepL" in st.session_state.get('ceviri_motoru', '') and st.session_state.get('api_key'):
-                            # DeepL kullan
-                            src = 'auto' if st.session_state.source_lang == 'Otomatik' else DEEPL_DILLER.get(st.session_state.source_lang, 'EN')
-                            dest = DEEPL_DILLER.get(st.session_state.target_lang, 'TR')
-                            
-                            translated = deepl_cevir(birlesik_metin, src, dest, st.session_state.api_key)
-                            
-                            if "Hatası" not in translated:
-                                st.success(translated)
-                                st.caption("✅ DeepL ile çevrildi")
-                            else:
-                                # DeepL hata verirse Google'a düş
-                                st.warning("DeepL çalışmadı, Google kullanılıyor...")
-                                src_g = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                                dest_g = DILLER.get(st.session_state.target_lang, 'tr')
-                                translated = google_cevir(birlesik_metin, src_g, dest_g)
-                                st.success(translated)
-                        else:
-                            # Google kullan
+                        try:
                             src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
                             dest = DILLER.get(st.session_state.target_lang, 'tr')
-                            translated = google_cevir(birlesik_metin, src, dest)
+                            
+                            translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
                             st.success(translated)
-                            st.caption("🔄 Google Translate ile çevrildi")
+                        except Exception as e:
+                            st.error(f"🥀 Çeviri hatası: {str(e)}")
                     
                     st.markdown('</div>', unsafe_allow_html=True)
                 
