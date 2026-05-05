@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import easyocr
 from deep_translator import GoogleTranslator
+import io
 
 # ==================== SAYFA YAPILANDIRMASI ====================
 st.set_page_config(
@@ -134,7 +135,7 @@ if st.session_state.sayfa == 'ayarlar':
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
 
-# ==================== SAYFA 2: KAMERA + ÇEVİRİ ====================
+# ==================== SAYFA 2: KAMERA + GALERİ + PDF ====================
 elif st.session_state.sayfa == 'kamera':
     
     st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
@@ -167,70 +168,194 @@ elif st.session_state.sayfa == 'kamera':
     
     st.write("---")
     
-    st.markdown("### 🌱 Yazıyı Kameraya Tutun")
+    # SEKME SEÇİMİ: Kamera / Galeri / PDF
+    tab1, tab2, tab3 = st.tabs(["📷 Kamera", "🖼️ Galeri", "📄 PDF"])
     
-    # YÖN DÖNDÜRME AYARI
-    st.markdown("**📐 Telefon Yönü:**")
-    yon = st.radio(
-        "Yazı nasıl görünüyor?",
-        ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-    
-    camera_image = st.camera_input("📸 Fotoğraf Çek", key="camera_full")
-    
-    if camera_image is not None:
-        with st.spinner("🍂 Metin okunuyor..."):
-            image = Image.open(camera_image)
-            
-            # YÖN DÖNDÜRME UYGULA
-            if yon == "Sağa Yatık":
-                image = image.rotate(-90, expand=True)
-            elif yon == "Sola Yatık":
-                image = image.rotate(90, expand=True)
-            elif yon == "Ters (Baş Aşağı)":
-                image = image.rotate(180, expand=True)
-            
-            img_array = np.array(image)
-            results = reader.readtext(img_array, detail=1)
+    # ==================== TAB 1: KAMERA ====================
+    with tab1:
+        st.markdown("### 🌱 Yazıyı Kameraya Tutun")
         
-        if results:
-            tum_metinler = []
-            for bbox, text, prob in results:
-                if prob >= st.session_state.get('min_confidence', 0.3):
-                    tum_metinler.append(text)
-            
-            if tum_metinler:
-                birlesik_metin = " ".join(tum_metinler)
-                
-                st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
-                
-                with st.container():
-                    c1, c2 = st.columns(2)
-                    
-                    with c1:
-                        st.markdown("**📝 Orijinal Metin:**")
-                        st.info(birlesik_metin)
-                    
-                    with c2:
-                        st.markdown("**🔄 Çeviri:**")
-                        try:
-                            src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                            dest = DILLER.get(st.session_state.target_lang, 'tr')
-                            
-                            translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                            st.success(translated)
-                        except Exception as e:
-                            st.error(f"🥀 Çeviri hatası: {str(e)}")
-                
-                st.write("---")
-                if st.button("🔄 Yeni Fotoğraf Çek", use_container_width=True):
-                    st.rerun()
-            else:
-                st.warning("🍂 Yeterince net metin bulunamadı.")
-        else:
-            st.warning("🍂 Hiç metin bulunamadı. Daha net tutun.")
+        yon = st.radio(
+            "Telefon Yönü:",
+            ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+        
+        camera_image = st.camera_input("📸 Fotoğraf Çek", key="camera_full")
+        
+        if camera_image is not None:
+            process_image(camera_image, yon, reader, "camera")
+    
+    # ==================== TAB 2: GALERİ ====================
+    with tab2:
+        st.markdown("### 🖼️ Galeriden Fotoğraf Yükle")
+        
+        galeri_yon = st.radio(
+            "Fotoğraf Yönü:",
+            ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="galeri_yon"
+        )
+        
+        uploaded_image = st.file_uploader(
+            "Fotoğraf seçin (PNG, JPG, JPEG)",
+            type=['png', 'jpg', 'jpeg'],
+            key="galeri"
+        )
+        
+        if uploaded_image is not None:
+            process_image(uploaded_image, galeri_yon, reader, "galeri")
+    
+    # ==================== TAB 3: PDF ====================
+    with tab3:
+        st.markdown("### 📄 PDF Yükle ve Çevir")
+        
+        uploaded_pdf = st.file_uploader(
+            "PDF seçin",
+            type=['pdf'],
+            key="pdf"
+        )
+        
+        if uploaded_pdf is not None:
+            process_pdf(uploaded_pdf, reader)
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("💡 Yazıyı net tutun ve yeterli ışık sağlayın")
+
+
+# ==================== FONKSİYONLAR ====================
+def process_image(image_source, yon, reader, source_type):
+    """Fotoğraf işleme ve çeviri"""
+    with st.spinner("🍂 Metin okunuyor..."):
+        if source_type == "camera":
+            image = Image.open(image_source)
+        else:
+            image = Image.open(image_source)
+        
+        # YÖN DÖNDÜRME
+        if yon == "Sağa Yatık":
+            image = image.rotate(-90, expand=True)
+        elif yon == "Sola Yatık":
+            image = image.rotate(90, expand=True)
+        elif yon == "Ters (Baş Aşağı)":
+            image = image.rotate(180, expand=True)
+        
+        img_array = np.array(image)
+        results = reader.readtext(img_array, detail=1)
+    
+    if results:
+        tum_metinler = []
+        for bbox, text, prob in results:
+            if prob >= st.session_state.get('min_confidence', 0.3):
+                tum_metinler.append(text)
+        
+        if tum_metinler:
+            birlesik_metin = " ".join(tum_metinler)
+            
+            st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
+            
+            with st.container():
+                c1, c2 = st.columns(2)
+                
+                with c1:
+                    st.markdown("**📝 Orijinal Metin:**")
+                    st.info(birlesik_metin)
+                
+                with c2:
+                    st.markdown("**🔄 Çeviri:**")
+                    try:
+                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
+                        dest = DILLER.get(st.session_state.target_lang, 'tr')
+                        
+                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                        st.success(translated)
+                    except Exception as e:
+                        st.error(f"🥀 Çeviri hatası: {str(e)}")
+            
+            st.write("---")
+            if st.button("🔄 Yeni İşlem", use_container_width=True, key=f"yeni_{source_type}"):
+                st.rerun()
+        else:
+            st.warning("🍂 Yeterince net metin bulunamadı.")
+    else:
+        st.warning("🍂 Hiç metin bulunamadı.")
+
+
+def process_pdf(pdf_source, reader):
+    """PDF işleme ve çeviri"""
+    try:
+        import fitz  # PyMuPDF
+        
+        with st.spinner("📄 PDF okunuyor..."):
+            # PDF'i aç
+            pdf_bytes = pdf_source.read()
+            pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+            
+            tum_metinler = []
+            
+            # Her sayfayı işle
+            for page_num in range(len(pdf_document)):
+                page = pdf_document[page_num]
+                
+                # Sayfayı görüntüye çevir
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom daha net okuma için
+                img_bytes = pix.tobytes("png")
+                
+                # PIL Image'e çevir
+                image = Image.open(io.BytesIO(img_bytes))
+                img_array = np.array(image)
+                
+                # OCR uygula
+                results = reader.readtext(img_array, detail=1)
+                
+                sayfa_metinleri = []
+                for bbox, text, prob in results:
+                    if prob >= st.session_state.get('min_confidence', 0.3):
+                        sayfa_metinleri.append(text)
+                
+                if sayfa_metinleri:
+                    tum_metinler.extend(sayfa_metinleri)
+                    st.info(f"📄 Sayfa {page_num + 1}: {len(sayfa_metinleri)} metin bloğu")
+            
+            pdf_document.close()
+        
+        if tum_metinler:
+            birlesik_metin = " ".join(tum_metinler)
+            
+            st.success(f"🌻 Toplam {len(tum_metinler)} metin bloğu bulundu!")
+            
+            with st.container():
+                c1, c2 = st.columns(2)
+                
+                with c1:
+                    st.markdown("**📝 Orijinal Metin:**")
+                    st.info(birlesik_metin[:2000] + "..." if len(birlesik_metin) > 2000 else birlesik_metin)
+                
+                with c2:
+                    st.markdown("**🔄 Çeviri:**")
+                    try:
+                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
+                        dest = DILLER.get(st.session_state.target_lang, 'tr')
+                        
+                        # Uzun metinleri parçala
+                        if len(birlesik_metin) > 4000:
+                            st.warning("📄 Metin çok uzun, ilk 4000 karakter çevriliyor...")
+                            birlesik_metin = birlesik_metin[:4000]
+                        
+                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                        st.success(translated)
+                    except Exception as e:
+                        st.error(f"🥀 Çeviri hatası: {str(e)}")
+            
+            st.write("---")
+            if st.button("🔄 Yeni PDF Yükle", use_container_width=True, key="yeni_pdf"):
+                st.rerun()
+        else:
+            st.warning("🍂 PDF'de metin bulunamadı. PDF görsel tabanlı olabilir, netlik düşük olabilir.")
+            
+    except ImportError:
+        st.error("📄 PDF işleme kütüphanesi yüklenmemiş. Lütfen yöneticiye başvurun.")
+    except Exception as e:
+        st.error(f"📄 PDF hatası: {str(e)}")
