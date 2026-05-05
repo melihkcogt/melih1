@@ -4,22 +4,14 @@ from PIL import Image
 import easyocr
 from deep_translator import GoogleTranslator
 
-# ==================== PWA DESTEĞİ ====================
+# ==================== TEMA AYARLARI ====================
 st.set_page_config(
-    page_title="Kamera Tercüman",
+    page_title="Melih'in Sanal Tercümanı",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# PWA manifest ve meta etiketleri
-st.markdown("""
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiS2FtZXJhIFRlcmPDvG1hbiIsInNob3J0X25hbWUiOiJUZXJjw7xtYW4iLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiIzI2NzRmYiJ9">
-    <meta name="theme-color" content="#2674fb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-""", unsafe_allow_html=True)
-
-# ==================== TEMA ====================
+# Karanlık mod
 dark_mode = st.toggle("🌙 Karanlık Mod", value=False)
 
 if dark_mode:
@@ -33,8 +25,8 @@ if dark_mode:
     """, unsafe_allow_html=True)
 
 # ==================== BAŞLIK ====================
-st.title("📱 Kamera Tercüman")
-st.caption("Kameranızı bir yazıya tutun, anında çeviri gelsin!")
+st.title("📱 Melih'in Sanal Tercümanı")
+st.caption("🌍 Sanal Dünyama Hoşgeldiniz")
 
 # ==================== DİL SEÇİMİ ====================
 diller = {
@@ -69,8 +61,10 @@ reader = load_models()
 # ==================== KAMERA ====================
 st.write("---")
 
+st.markdown("### 🚀 Sanal Dünya Turuna Hazır Mısın?")
+
 camera_image = st.camera_input(
-    "Kamerayı açın ve bir yazı tutun",
+    "Tura Başla",
     key="camera"
 )
 
@@ -115,5 +109,4 @@ if camera_image is not None:
         st.warning("❌ Hiç metin bulunamadı. Daha net tutun.")
 
 st.write("---")
-st.caption("💡 İpucu: Daha iyi sonuç için yazıyı net tutun ve yeterli ışık sağlayın.")
-st.caption("📱 Bu uygulamayı ana ekranınıza ekleyebilirsiniz!")
+st.caption("💡 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
