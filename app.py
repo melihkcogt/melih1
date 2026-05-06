@@ -5,91 +5,7 @@ import easyocr
 from deep_translator import GoogleTranslator
 import io
 
-# ==================== SAYFA YAPILANDIRMASI ====================
-st.set_page_config(
-    page_title="Melih'in Sanal Tercümanı",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# ==================== DOĞA RENKLERİ CSS ====================
-st.markdown("""
-    <style>
-    .stApp {
-        background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%);
-    }
-    .nature-title {
-        font-size: 44px;
-        font-weight: 700;
-        color: #2e7d32;
-        text-align: center;
-        margin-bottom: 5px;
-        font-family: 'Georgia', serif;
-    }
-    .nature-subtitle {
-        font-size: 18px;
-        color: #795548;
-        text-align: center;
-        margin-bottom: 30px;
-        font-family: 'Georgia', serif;
-    }
-    .nature-line {
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
-        margin: 25px 0;
-        border-radius: 2px;
-    }
-    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 20px;
-        padding: 30px;
-        margin: 15px 0;
-        box-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
-        border: 1px solid rgba(46, 125, 50, 0.1);
-    }
-    .stButton>button {
-        background: linear-gradient(45deg, #43a047 0%, #2e7d32 100%);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 18px 50px;
-        font-size: 20px;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-        width: 100%;
-    }
-    .stButton>button:hover {
-        background: linear-gradient(45deg, #2e7d32 0%, #1b5e20 100%);
-        transform: translateY(-2px);
-    }
-    .stSelectbox>div>div {
-        background: white;
-        border-radius: 15px;
-        border: 2px solid #81c784;
-        box-shadow: 0 2px 10px rgba(129, 199, 132, 0.2);
-    }
-    .stInfo {
-        background: rgba(232, 245, 233, 0.8);
-        border: 1px solid #81c784;
-        border-radius: 15px;
-        color: #2e7d32;
-    }
-    .stSuccess {
-        background: rgba(200, 230, 201, 0.9);
-        border: 1px solid #66bb6a;
-        border-radius: 15px;
-        color: #1b5e20;
-    }
-    .stWarning {
-        background: rgba(255, 249, 196, 0.8);
-        border: 1px solid #ffd54f;
-        border-radius: 15px;
-        color: #f57f17;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# ==================== DİL VERİSİ ====================
+# ==================== DİL VERİSİ (GLOBAL) ====================
 DILLER = {
     'Türkçe': 'tr', 'İngilizce': 'en', 'Almanca': 'de',
     'Fransızca': 'fr', 'İspanyolca': 'es', 'İtalyanca': 'it',
@@ -97,11 +13,300 @@ DILLER = {
     'Çince': 'zh-CN', 'Japonca': 'ja', 'Korece': 'ko'
 }
 
+# ==================== SAYFA YAPILANDIRMASI ====================
+st.set_page_config(
+    page_title="Melih'in Sanal Tercümanı",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ==================== DOĞA RENKLERİ CSS - YAZI RENGİ SABİT ====================
+st.markdown("""
+    <style>
+    /* ARKA PLAN */
+    .stApp {
+        background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%);
+    }
+    
+    /* TÜM YAZILAR SİYAH - TARAYICI FARK ETMEZ */
+    .stApp, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, 
+    .stSelectbox label, .stSlider label, .stButton button,
+    .stInfo, .stSuccess, .stWarning, .stError,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] h1,
+    div[data-testid="stMarkdownContainer"] h2,
+    div[data-testid="stMarkdownContainer"] h3 {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+    
+    /* BAŞLIK STİLİ */
+    .nature-title {
+        font-size: 44px;
+        font-weight: 700;
+        color: #2e7d32 !important;
+        text-align: center;
+        margin-bottom: 5px;
+        font-family: 'Georgia', serif;
+        -webkit-text-fill-color: #2e7d32 !important;
+    }
+    
+    .nature-subtitle {
+        font-size: 18px;
+        color: #5d4037 !important;
+        text-align: center;
+        margin-bottom: 30px;
+        font-family: 'Georgia', serif;
+        -webkit-text-fill-color: #5d4037 !important;
+    }
+    
+    /* KART STİLİ */
+    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        margin: 15px 0;
+        box-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
+        border: 1px solid rgba(46, 125, 50, 0.1);
+    }
+    
+    /* BUTON */
+    .stButton>button {
+        background: linear-gradient(45deg, #43a047 0%, #2e7d32 100%);
+        color: #ffffff !important;
+        border: none;
+        border-radius: 25px;
+        padding: 18px 50px;
+        font-size: 20px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        width: 100%;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    
+    .stButton>button:hover {
+        background: linear-gradient(45deg, #2e7d32 0%, #1b5e20 100%);
+        transform: translateY(-2px);
+    }
+    
+    /* SEÇİM KUTULARI */
+    .stSelectbox>div>div {
+        background: #ffffff;
+        border-radius: 15px;
+        border: 2px solid #81c784;
+        box-shadow: 0 2px 10px rgba(129, 199, 132, 0.2);
+    }
+    
+    .stSelectbox label {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+        font-weight: 600;
+    }
+    
+    /* SLIDER */
+    .stSlider label {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+        font-weight: 600;
+    }
+    
+    .stSlider div[data-testid="stThumbValue"] {
+        color: #2e7d32 !important;
+        -webkit-text-fill-color: #2e7d32 !important;
+        font-weight: bold;
+    }
+    
+    /* BİLGİ KUTULARI */
+    .stInfo {
+        background: rgba(232, 245, 233, 0.9);
+        border: 1px solid #81c784;
+        border-radius: 15px;
+    }
+    
+    .stInfo p, .stInfo div {
+        color: #1b5e20 !important;
+        -webkit-text-fill-color: #1b5e20 !important;
+    }
+    
+    .stSuccess {
+        background: rgba(200, 230, 201, 0.95);
+        border: 1px solid #66bb6a;
+        border-radius: 15px;
+    }
+    
+    .stSuccess p, .stSuccess div {
+        color: #1b5e20 !important;
+        -webkit-text-fill-color: #1b5e20 !important;
+    }
+    
+    .stWarning {
+        background: rgba(255, 249, 196, 0.9);
+        border: 1px solid #ffd54f;
+        border-radius: 15px;
+    }
+    
+    .stWarning p, .stWarning div {
+        color: #f57f17 !important;
+        -webkit-text-fill-color: #f57f17 !important;
+    }
+    
+    /* AYIRICI ÇİZGİ */
+    .nature-line {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
+        margin: 25px 0;
+        border-radius: 2px;
+    }
+    
+    /* CAPTION/ALT YAZI */
+    .stCaption {
+        color: #5d4037 !important;
+        -webkit-text-fill-color: #5d4037 !important;
+        font-size: 14px;
+    }
+    
+    /* RADIO BUTONLAR */
+    .stRadio label {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+    
+    /* SEKME ETİKETLERİ */
+    .stTabs [data-baseweb="tab-list"] button {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # ==================== SESSION STATE ====================
 if 'sayfa' not in st.session_state:
     st.session_state.sayfa = 'ayarlar'
     st.session_state.source_lang = 'Otomatik'
     st.session_state.target_lang = 'İngilizce'
+
+# ==================== FONKSİYONLAR ====================
+def process_image(image_source, yon, reader, source_type):
+    """Fotoğraf işleme ve çeviri"""
+    with st.spinner("🍂 Metin okunuyor..."):
+        image = Image.open(image_source)
+        
+        if yon == "Sağa Yatık":
+            image = image.rotate(-90, expand=True)
+        elif yon == "Sola Yatık":
+            image = image.rotate(90, expand=True)
+        elif yon == "Ters (Baş Aşağı)":
+            image = image.rotate(180, expand=True)
+        
+        img_array = np.array(image)
+        results = reader.readtext(img_array, detail=1)
+    
+    if results:
+        tum_metinler = []
+        for bbox, text, prob in results:
+            if prob >= st.session_state.get('min_confidence', 0.3):
+                tum_metinler.append(text)
+        
+        if tum_metinler:
+            birlesik_metin = " ".join(tum_metinler)
+            
+            st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
+            
+            with st.container():
+                c1, c2 = st.columns(2)
+                
+                with c1:
+                    st.markdown("**📝 Orijinal Metin:**")
+                    st.info(birlesik_metin)
+                
+                with c2:
+                    st.markdown("**🔄 Çeviri:**")
+                    try:
+                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
+                        dest = DILLER.get(st.session_state.target_lang, 'tr')
+                        
+                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                        st.success(translated)
+                    except Exception as e:
+                        st.error(f"🥀 Çeviri hatası: {str(e)}")
+            
+            st.write("---")
+            if st.button("🔄 Yeni İşlem", use_container_width=True, key=f"yeni_{source_type}"):
+                st.rerun()
+        else:
+            st.warning("🍂 Yeterince net metin bulunamadı.")
+    else:
+        st.warning("🍂 Hiç metin bulunamadı.")
+
+
+def process_pdf(pdf_source, reader):
+    """PDF işleme ve çeviri"""
+    try:
+        import fitz
+        
+        with st.spinner("📄 PDF okunuyor..."):
+            pdf_bytes = pdf_source.read()
+            pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+            
+            tum_metinler = []
+            
+            for page_num in range(len(pdf_document)):
+                page = pdf_document[page_num]
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                img_bytes = pix.tobytes("png")
+                
+                image = Image.open(io.BytesIO(img_bytes))
+                img_array = np.array(image)
+                results = reader.readtext(img_array, detail=1)
+                
+                sayfa_metinleri = []
+                for bbox, text, prob in results:
+                    if prob >= st.session_state.get('min_confidence', 0.3):
+                        sayfa_metinleri.append(text)
+                
+                if sayfa_metinleri:
+                    tum_metinler.extend(sayfa_metinleri)
+                    st.info(f"📄 Sayfa {page_num + 1}: {len(sayfa_metinleri)} metin bloğu")
+            
+            pdf_document.close()
+        
+        if tum_metinler:
+            birlesik_metin = " ".join(tum_metinler)
+            
+            st.success(f"🌻 Toplam {len(tum_metinler)} metin bloğu bulundu!")
+            
+            with st.container():
+                c1, c2 = st.columns(2)
+                
+                with c1:
+                    st.markdown("**📝 Orijinal Metin:**")
+                    st.info(birlesik_metin[:2000] + "..." if len(birlesik_metin) > 2000 else birlesik_metin)
+                
+                with c2:
+                    st.markdown("**🔄 Çeviri:**")
+                    try:
+                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
+                        dest = DILLER.get(st.session_state.target_lang, 'tr')
+                        
+                        if len(birlesik_metin) > 4000:
+                            st.warning("📄 Metin çok uzun, ilk 4000 karakter çevriliyor...")
+                            birlesik_metin = birlesik_metin[:4000]
+                        
+                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                        st.success(translated)
+                    except Exception as e:
+                        st.error(f"🥀 Çeviri hatası: {str(e)}")
+            
+            st.write("---")
+            if st.button("🔄 Yeni PDF Yükle", use_container_width=True, key="yeni_pdf"):
+                st.rerun()
+        else:
+            st.warning("🍂 PDF'de metin bulunamadı.")
+            
+    except ImportError:
+        st.error("📄 PDF kütüphanesi yüklenmemiş.")
+    except Exception as e:
+        st.error(f"📄 PDF hatası: {str(e)}")
 
 # ==================== SAYFA 1: AYARLAR ====================
 if st.session_state.sayfa == 'ayarlar':
@@ -168,10 +373,8 @@ elif st.session_state.sayfa == 'kamera':
     
     st.write("---")
     
-    # SEKME SEÇİMİ: Kamera / Galeri / PDF
     tab1, tab2, tab3 = st.tabs(["📷 Kamera", "🖼️ Galeri", "📄 PDF"])
     
-    # ==================== TAB 1: KAMERA ====================
     with tab1:
         st.markdown("### 🌱 Yazıyı Kameraya Tutun")
         
@@ -187,7 +390,6 @@ elif st.session_state.sayfa == 'kamera':
         if camera_image is not None:
             process_image(camera_image, yon, reader, "camera")
     
-    # ==================== TAB 2: GALERİ ====================
     with tab2:
         st.markdown("### 🖼️ Galeriden Fotoğraf Yükle")
         
@@ -200,7 +402,7 @@ elif st.session_state.sayfa == 'kamera':
         )
         
         uploaded_image = st.file_uploader(
-            "Fotoğraf seçin (PNG, JPG, JPEG)",
+            "Fotoğraf seçin",
             type=['png', 'jpg', 'jpeg'],
             key="galeri"
         )
@@ -208,7 +410,6 @@ elif st.session_state.sayfa == 'kamera':
         if uploaded_image is not None:
             process_image(uploaded_image, galeri_yon, reader, "galeri")
     
-    # ==================== TAB 3: PDF ====================
     with tab3:
         st.markdown("### 📄 PDF Yükle ve Çevir")
         
@@ -223,139 +424,3 @@ elif st.session_state.sayfa == 'kamera':
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("💡 Yazıyı net tutun ve yeterli ışık sağlayın")
-
-
-# ==================== FONKSİYONLAR ====================
-def process_image(image_source, yon, reader, source_type):
-    """Fotoğraf işleme ve çeviri"""
-    with st.spinner("🍂 Metin okunuyor..."):
-        if source_type == "camera":
-            image = Image.open(image_source)
-        else:
-            image = Image.open(image_source)
-        
-        # YÖN DÖNDÜRME
-        if yon == "Sağa Yatık":
-            image = image.rotate(-90, expand=True)
-        elif yon == "Sola Yatık":
-            image = image.rotate(90, expand=True)
-        elif yon == "Ters (Baş Aşağı)":
-            image = image.rotate(180, expand=True)
-        
-        img_array = np.array(image)
-        results = reader.readtext(img_array, detail=1)
-    
-    if results:
-        tum_metinler = []
-        for bbox, text, prob in results:
-            if prob >= st.session_state.get('min_confidence', 0.3):
-                tum_metinler.append(text)
-        
-        if tum_metinler:
-            birlesik_metin = " ".join(tum_metinler)
-            
-            st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
-            
-            with st.container():
-                c1, c2 = st.columns(2)
-                
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(birlesik_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    try:
-                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                        dest = DILLER.get(st.session_state.target_lang, 'tr')
-                        
-                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                        st.success(translated)
-                    except Exception as e:
-                        st.error(f"🥀 Çeviri hatası: {str(e)}")
-            
-            st.write("---")
-            if st.button("🔄 Yeni İşlem", use_container_width=True, key=f"yeni_{source_type}"):
-                st.rerun()
-        else:
-            st.warning("🍂 Yeterince net metin bulunamadı.")
-    else:
-        st.warning("🍂 Hiç metin bulunamadı.")
-
-
-def process_pdf(pdf_source, reader):
-    """PDF işleme ve çeviri"""
-    try:
-        import fitz  # PyMuPDF
-        
-        with st.spinner("📄 PDF okunuyor..."):
-            # PDF'i aç
-            pdf_bytes = pdf_source.read()
-            pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
-            
-            tum_metinler = []
-            
-            # Her sayfayı işle
-            for page_num in range(len(pdf_document)):
-                page = pdf_document[page_num]
-                
-                # Sayfayı görüntüye çevir
-                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom daha net okuma için
-                img_bytes = pix.tobytes("png")
-                
-                # PIL Image'e çevir
-                image = Image.open(io.BytesIO(img_bytes))
-                img_array = np.array(image)
-                
-                # OCR uygula
-                results = reader.readtext(img_array, detail=1)
-                
-                sayfa_metinleri = []
-                for bbox, text, prob in results:
-                    if prob >= st.session_state.get('min_confidence', 0.3):
-                        sayfa_metinleri.append(text)
-                
-                if sayfa_metinleri:
-                    tum_metinler.extend(sayfa_metinleri)
-                    st.info(f"📄 Sayfa {page_num + 1}: {len(sayfa_metinleri)} metin bloğu")
-            
-            pdf_document.close()
-        
-        if tum_metinler:
-            birlesik_metin = " ".join(tum_metinler)
-            
-            st.success(f"🌻 Toplam {len(tum_metinler)} metin bloğu bulundu!")
-            
-            with st.container():
-                c1, c2 = st.columns(2)
-                
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(birlesik_metin[:2000] + "..." if len(birlesik_metin) > 2000 else birlesik_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    try:
-                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                        dest = DILLER.get(st.session_state.target_lang, 'tr')
-                        
-                        # Uzun metinleri parçala
-                        if len(birlesik_metin) > 4000:
-                            st.warning("📄 Metin çok uzun, ilk 4000 karakter çevriliyor...")
-                            birlesik_metin = birlesik_metin[:4000]
-                        
-                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                        st.success(translated)
-                    except Exception as e:
-                        st.error(f"🥀 Çeviri hatası: {str(e)}")
-            
-            st.write("---")
-            if st.button("🔄 Yeni PDF Yükle", use_container_width=True, key="yeni_pdf"):
-                st.rerun()
-        else:
-            st.warning("🍂 PDF'de metin bulunamadı. PDF görsel tabanlı olabilir, netlik düşük olabilir.")
-            
-    except ImportError:
-        st.error("📄 PDF işleme kütüphanesi yüklenmemiş. Lütfen yöneticiye başvurun.")
-    except Exception as e:
-        st.error(f"📄 PDF hatası: {str(e)}")
