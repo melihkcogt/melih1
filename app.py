@@ -20,15 +20,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ==================== DOĞA RENKLERİ CSS - YAZI RENGİ SABİT ====================
+# ==================== DOĞA RENKLERİ CSS ====================
 st.markdown("""
     <style>
-    /* ARKA PLAN */
     .stApp {
         background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%);
     }
-    
-    /* TÜM YAZILAR SİYAH - TARAYICI FARK ETMEZ */
     .stApp, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, 
     .stSelectbox label, .stSlider label, .stButton button,
     .stInfo, .stSuccess, .stWarning, .stError,
@@ -39,8 +36,6 @@ st.markdown("""
         color: #1a1a1a !important;
         -webkit-text-fill-color: #1a1a1a !important;
     }
-    
-    /* BAŞLIK STİLİ */
     .nature-title {
         font-size: 44px;
         font-weight: 700;
@@ -50,7 +45,6 @@ st.markdown("""
         font-family: 'Georgia', serif;
         -webkit-text-fill-color: #2e7d32 !important;
     }
-    
     .nature-subtitle {
         font-size: 18px;
         color: #5d4037 !important;
@@ -59,8 +53,6 @@ st.markdown("""
         font-family: 'Georgia', serif;
         -webkit-text-fill-color: #5d4037 !important;
     }
-    
-    /* KART STİLİ */
     div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
@@ -69,8 +61,6 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
         border: 1px solid rgba(46, 125, 50, 0.1);
     }
-    
-    /* BUTON */
     .stButton>button {
         background: linear-gradient(45deg, #43a047 0%, #2e7d32 100%);
         color: #ffffff !important;
@@ -83,98 +73,88 @@ st.markdown("""
         width: 100%;
         -webkit-text-fill-color: #ffffff !important;
     }
-    
     .stButton>button:hover {
         background: linear-gradient(45deg, #2e7d32 0%, #1b5e20 100%);
         transform: translateY(-2px);
     }
-    
-    /* SEÇİM KUTULARI */
     .stSelectbox>div>div {
         background: #ffffff;
         border-radius: 15px;
         border: 2px solid #81c784;
         box-shadow: 0 2px 10px rgba(129, 199, 132, 0.2);
     }
-    
     .stSelectbox label {
         color: #1a1a1a !important;
         -webkit-text-fill-color: #1a1a1a !important;
         font-weight: 600;
     }
-    
-    /* SLIDER */
     .stSlider label {
         color: #1a1a1a !important;
         -webkit-text-fill-color: #1a1a1a !important;
         font-weight: 600;
     }
-    
     .stSlider div[data-testid="stThumbValue"] {
         color: #2e7d32 !important;
         -webkit-text-fill-color: #2e7d32 !important;
         font-weight: bold;
     }
-    
-    /* BİLGİ KUTULARI */
     .stInfo {
         background: rgba(232, 245, 233, 0.9);
         border: 1px solid #81c784;
         border-radius: 15px;
     }
-    
     .stInfo p, .stInfo div {
         color: #1b5e20 !important;
         -webkit-text-fill-color: #1b5e20 !important;
     }
-    
     .stSuccess {
         background: rgba(200, 230, 201, 0.95);
         border: 1px solid #66bb6a;
         border-radius: 15px;
     }
-    
     .stSuccess p, .stSuccess div {
         color: #1b5e20 !important;
         -webkit-text-fill-color: #1b5e20 !important;
     }
-    
     .stWarning {
         background: rgba(255, 249, 196, 0.9);
         border: 1px solid #ffd54f;
         border-radius: 15px;
     }
-    
     .stWarning p, .stWarning div {
         color: #f57f17 !important;
         -webkit-text-fill-color: #f57f17 !important;
     }
-    
-    /* AYIRICI ÇİZGİ */
     .nature-line {
         height: 3px;
         background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
         margin: 25px 0;
         border-radius: 2px;
     }
-    
-    /* CAPTION/ALT YAZI */
     .stCaption {
         color: #5d4037 !important;
         -webkit-text-fill-color: #5d4037 !important;
         font-size: 14px;
     }
-    
-    /* RADIO BUTONLAR */
     .stRadio label {
         color: #1a1a1a !important;
         -webkit-text-fill-color: #1a1a1a !important;
     }
-    
-    /* SEKME ETİKETLERİ */
     .stTabs [data-baseweb="tab-list"] button {
         color: #1a1a1a !important;
         -webkit-text-fill-color: #1a1a1a !important;
+    }
+    /* TEXT AREA STİLİ */
+    .stTextArea textarea {
+        background: white;
+        border: 2px solid #81c784;
+        border-radius: 15px;
+        color: #1a1a1a !important;
+        font-size: 16px;
+    }
+    .stTextArea label {
+        color: #1a1a1a !important;
+        font-weight: 600;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -186,18 +166,10 @@ if 'sayfa' not in st.session_state:
     st.session_state.target_lang = 'İngilizce'
 
 # ==================== FONKSİYONLAR ====================
-def process_image(image_source, yon, reader, source_type):
-    """Fotoğraf işleme ve çeviri"""
+def process_image(image_source, reader, source_type):
+    """Fotoğraf işleme ve çeviri - YÖN PARAMETRESİ KALDIRILDI"""
     with st.spinner("🍂 Metin okunuyor..."):
         image = Image.open(image_source)
-        
-        if yon == "Sağa Yatık":
-            image = image.rotate(-90, expand=True)
-        elif yon == "Sola Yatık":
-            image = image.rotate(90, expand=True)
-        elif yon == "Ters (Baş Aşağı)":
-            image = image.rotate(180, expand=True)
-        
         img_array = np.array(image)
         results = reader.readtext(img_array, detail=1)
     
@@ -308,6 +280,16 @@ def process_pdf(pdf_source, reader):
     except Exception as e:
         st.error(f"📄 PDF hatası: {str(e)}")
 
+def ceviri_yap(metin, kaynak, hedef):
+    """Manuel metin çeviri fonksiyonu"""
+    try:
+        src = 'auto' if kaynak == 'Otomatik' else DILLER.get(kaynak, 'auto')
+        dest = DILLER.get(hedef, 'tr')
+        translated = GoogleTranslator(source=src, target=dest).translate(metin)
+        return translated
+    except Exception as e:
+        return f"🥀 Çeviri hatası: {str(e)}"
+
 # ==================== SAYFA 1: AYARLAR ====================
 if st.session_state.sayfa == 'ayarlar':
     
@@ -340,7 +322,7 @@ if st.session_state.sayfa == 'ayarlar':
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
 
-# ==================== SAYFA 2: KAMERA + GALERİ + PDF ====================
+# ==================== SAYFA 2: KAMERA + GALERİ + PDF + YAZI ÇEVİRİ ====================
 elif st.session_state.sayfa == 'kamera':
     
     st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
@@ -373,34 +355,24 @@ elif st.session_state.sayfa == 'kamera':
     
     st.write("---")
     
-    tab1, tab2, tab3 = st.tabs(["📷 Kamera", "🖼️ Galeri", "📄 PDF"])
+    # YENİ SEKME: YAZI ÇEVİRİ EKLENDİ
+    tab1, tab2, tab3, tab4 = st.tabs(["📷 Kamera", "🖼️ Galeri", "📄 PDF", "✍️ Yazı Çevir"])
     
+    # TAB 1: KAMERA - YÖN BAŞLIKLARI KALDIRILDI
     with tab1:
         st.markdown("### 🌱 Yazıyı Kameraya Tutun")
         
-        yon = st.radio(
-            "Telefon Yönü:",
-            ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
-            horizontal=True,
-            label_visibility="collapsed"
-        )
-        
+        # YÖN SEÇİMİ KALDIRILDI - DOĞRUDAN KAMERA
         camera_image = st.camera_input("📸 Fotoğraf Çek", key="camera_full")
         
         if camera_image is not None:
-            process_image(camera_image, yon, reader, "camera")
+            process_image(camera_image, reader, "camera")
     
+    # TAB 2: GALERİ - YÖN BAŞLIKLARI KALDIRILDI
     with tab2:
         st.markdown("### 🖼️ Galeriden Fotoğraf Yükle")
         
-        galeri_yon = st.radio(
-            "Fotoğraf Yönü:",
-            ["Düz (Normal)", "Sağa Yatık", "Sola Yatık", "Ters (Baş Aşağı)"],
-            horizontal=True,
-            label_visibility="collapsed",
-            key="galeri_yon"
-        )
-        
+        # YÖN SEÇİMİ KALDIRILDI - DOĞRUDAN YÜKLEME
         uploaded_image = st.file_uploader(
             "Fotoğraf seçin",
             type=['png', 'jpg', 'jpeg'],
@@ -408,8 +380,9 @@ elif st.session_state.sayfa == 'kamera':
         )
         
         if uploaded_image is not None:
-            process_image(uploaded_image, galeri_yon, reader, "galeri")
+            process_image(uploaded_image, reader, "galeri")
     
+    # TAB 3: PDF
     with tab3:
         st.markdown("### 📄 PDF Yükle ve Çevir")
         
@@ -421,6 +394,39 @@ elif st.session_state.sayfa == 'kamera':
         
         if uploaded_pdf is not None:
             process_pdf(uploaded_pdf, reader)
+    
+    # TAB 4: YAZI ÇEVİRİ - YENİ EKLENDİ
+    with tab4:
+        st.markdown("### ✍️ Kendi Yazınızı Çevirin")
+        st.write("Aşağıya metninizi yazın, anında çevirelim!")
+        
+        # Metin giriş alanı
+        girilen_metin = st.text_area(
+            "📝 Metninizi buraya yazın:",
+            height=200,
+            placeholder="Örn: Hello, how are you today?"
+        )
+        
+        if girilen_metin:
+            st.write("---")
+            
+            with st.container():
+                c1, c2 = st.columns(2)
+                
+                with c1:
+                    st.markdown("**📝 Orijinal Metin:**")
+                    st.info(girilen_metin)
+                
+                with c2:
+                    st.markdown("**🔄 Çeviri:**")
+                    if st.button("🚀 Çevir", use_container_width=True, key="manuel_cevir"):
+                        with st.spinner("🍂 Çevriliyor..."):
+                            sonuc = ceviri_yap(
+                                girilen_metin,
+                                st.session_state.source_lang,
+                                st.session_state.target_lang
+                            )
+                            st.success(sonuc)
     
     st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
     st.caption("💡 Yazıyı net tutun ve yeterli ışık sağlayın")
