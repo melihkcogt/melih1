@@ -5,7 +5,7 @@ import easyocr
 from deep_translator import GoogleTranslator
 import io
 
-# ==================== DİL VERİSİ (GLOBAL) ====================
+# ==================== DİL VERİSİ ====================
 DILLER = {
     'Türkçe': 'tr', 'İngilizce': 'en', 'Almanca': 'de',
     'Fransızca': 'fr', 'İspanyolca': 'es', 'İtalyanca': 'it',
@@ -13,420 +13,139 @@ DILLER = {
     'Çince': 'zh-CN', 'Japonca': 'ja', 'Korece': 'ko'
 }
 
-# ==================== SAYFA YAPILANDIRMASI ====================
-st.set_page_config(
-    page_title="Melih'in Sanal Tercümanı",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="Melih'in Sanal Tercümanı", layout="wide")
 
-# ==================== DOĞA RENKLERİ CSS ====================
 st.markdown("""
     <style>
-    .stApp {
-        background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%);
+    .stApp { background: linear-gradient(180deg, #f5f5dc 0%, #e8f5e9 50%, #d4edda 100%); }
+    .stApp, p, h1, h2, h3, label { color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
+    .baslik { font-size: 42px; font-weight: 700; color: #2e7d32 !important; text-align: center; -webkit-text-fill-color: #2e7d32 !important; }
+    .altbaslik { font-size: 18px; color: #5d4037 !important; text-align: center; -webkit-text-fill-color: #5d4037 !important; }
+    .stButton>button { 
+        background: #2e7d32; color: white !important; border-radius: 20px; 
+        padding: 12px 30px; font-size: 16px; width: 100%;
+        -webkit-text-fill-color: white !important;
     }
-    .stApp, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, 
-    .stSelectbox label, .stSlider label, .stButton button,
-    .stInfo, .stSuccess, .stWarning, .stError,
-    div[data-testid="stMarkdownContainer"] p,
-    div[data-testid="stMarkdownContainer"] h1,
-    div[data-testid="stMarkdownContainer"] h2,
-    div[data-testid="stMarkdownContainer"] h3 {
-        color: #1a1a1a !important;
-        -webkit-text-fill-color: #1a1a1a !important;
+    .stButton>button:hover { background: #1b5e20; }
+    .stTextArea textarea { 
+        background: white; border: 2px solid #81c784; border-radius: 15px; 
+        color: #1a1a1a !important; font-size: 16px;
     }
-    .nature-title {
-        font-size: 44px;
-        font-weight: 700;
-        color: #2e7d32 !important;
-        text-align: center;
-        margin-bottom: 5px;
-        font-family: 'Georgia', serif;
-        -webkit-text-fill-color: #2e7d32 !important;
-    }
-    .nature-subtitle {
-        font-size: 18px;
-        color: #5d4037 !important;
-        text-align: center;
-        margin-bottom: 30px;
-        font-family: 'Georgia', serif;
-        -webkit-text-fill-color: #5d4037 !important;
-    }
-    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div[data-testid="stVerticalBlock"] {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        padding: 30px;
-        margin: 15px 0;
-        box-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
-        border: 1px solid rgba(46, 125, 50, 0.1);
-    }
-    .stButton>button {
-        background: linear-gradient(45deg, #43a047 0%, #2e7d32 100%);
-        color: #ffffff !important;
-        border: none;
-        border-radius: 25px;
-        padding: 18px 50px;
-        font-size: 20px;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-        width: 100%;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    .stButton>button:hover {
-        background: linear-gradient(45deg, #2e7d32 0%, #1b5e20 100%);
-        transform: translateY(-2px);
-    }
-    .stSelectbox>div>div {
-        background: #ffffff;
-        border-radius: 15px;
-        border: 2px solid #81c784;
-        box-shadow: 0 2px 10px rgba(129, 199, 132, 0.2);
-    }
-    .stSelectbox label {
-        color: #1a1a1a !important;
-        -webkit-text-fill-color: #1a1a1a !important;
-        font-weight: 600;
-    }
-    .stSlider label {
-        color: #1a1a1a !important;
-        -webkit-text-fill-color: #1a1a1a !important;
-        font-weight: 600;
-    }
-    .stSlider div[data-testid="stThumbValue"] {
-        color: #2e7d32 !important;
-        -webkit-text-fill-color: #2e7d32 !important;
-        font-weight: bold;
-    }
-    .stInfo {
-        background: rgba(232, 245, 233, 0.9);
-        border: 1px solid #81c784;
-        border-radius: 15px;
-    }
-    .stInfo p, .stInfo div {
-        color: #1b5e20 !important;
-        -webkit-text-fill-color: #1b5e20 !important;
-    }
-    .stSuccess {
-        background: rgba(200, 230, 201, 0.95);
-        border: 1px solid #66bb6a;
-        border-radius: 15px;
-    }
-    .stSuccess p, .stSuccess div {
-        color: #1b5e20 !important;
-        -webkit-text-fill-color: #1b5e20 !important;
-    }
-    .stWarning {
-        background: rgba(255, 249, 196, 0.9);
-        border: 1px solid #ffd54f;
-        border-radius: 15px;
-    }
-    .stWarning p, .stWarning div {
-        color: #f57f17 !important;
-        -webkit-text-fill-color: #f57f17 !important;
-    }
-    .nature-line {
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #81c784, #4caf50, #81c784, transparent);
-        margin: 25px 0;
-        border-radius: 2px;
-    }
-    .stCaption {
-        color: #5d4037 !important;
-        -webkit-text-fill-color: #5d4037 !important;
-        font-size: 14px;
-    }
-    .stRadio label {
-        color: #1a1a1a !important;
-        -webkit-text-fill-color: #1a1a1a !important;
-    }
-    .stTabs [data-baseweb="tab-list"] button {
-        color: #1a1a1a !important;
-        -webkit-text-fill-color: #1a1a1a !important;
-    }
-    /* TEXT AREA STİLİ */
-    .stTextArea textarea {
-        background: white;
-        border: 2px solid #81c784;
-        border-radius: 15px;
-        color: #1a1a1a !important;
-        font-size: 16px;
-    }
-    .stTextArea label {
-        color: #1a1a1a !important;
-        font-weight: 600;
-    }
+    .stSelectbox>div>div { background: white; border-radius: 10px; border: 2px solid #81c784; }
+    .kutu { background: white; border-radius: 15px; padding: 20px; margin: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .sonuc-kutu { background: #e8f5e9; border-radius: 10px; padding: 15px; border-left: 4px solid #2e7d32; }
+    .hata-kutu { background: #ffebee; border-radius: 10px; padding: 15px; border-left: 4px solid #c62828; }
     </style>
 """, unsafe_allow_html=True)
 
-# ==================== SESSION STATE ====================
-if 'sayfa' not in st.session_state:
-    st.session_state.sayfa = 'ayarlar'
-    st.session_state.source_lang = 'Otomatik'
-    st.session_state.target_lang = 'İngilizce'
+# ==================== BAŞLIK ====================
+st.markdown('<div class="baslik">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
+st.markdown('<div class="altbaslik">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
+st.markdown("---")
 
-# ==================== FONKSİYONLAR ====================
-def process_image(image_source, reader, source_type):
-    """Fotoğraf işleme ve çeviri - YÖN PARAMETRESİ KALDIRILDI"""
-    with st.spinner("🍂 Metin okunuyor..."):
-        image = Image.open(image_source)
-        img_array = np.array(image)
-        results = reader.readtext(img_array, detail=1)
+# ==================== DİL SEÇİMİ ====================
+col1, col2 = st.columns(2)
+with col1:
+    source_lang = st.selectbox("🌍 Kaynak Dil", ['Otomatik'] + list(DILLER.keys()), key="src")
+with col2:
+    target_lang = st.selectbox("🎯 Hedef Dil", list(DILLER.keys()), index=1, key="tgt")
+
+min_confidence = st.slider("🔍 Min. Güven Skoru", 0.0, 1.0, 0.3)
+
+st.markdown("---")
+
+# ==================== YAZI ÇEVİRİ ====================
+st.markdown("### ✍️ Yazı Çevir")
+
+with st.container():
+    yazilacak_metin = st.text_area(
+        "Metninizi yazın:",
+        height=150,
+        placeholder="Buraya yazın...",
+        key="yazi_input"
+    )
     
-    if results:
-        tum_metinler = []
-        for bbox, text, prob in results:
-            if prob >= st.session_state.get('min_confidence', 0.3):
-                tum_metinler.append(text)
-        
-        if tum_metinler:
-            birlesik_metin = " ".join(tum_metinler)
+    # ENTER ile çalışan buton (form kullanarak)
+    with st.form(key="yazi_form", clear_on_submit=False):
+        st.text("")  # boşluk
+        gonder_btn = st.form_submit_button("🚀 Çevir", use_container_width=True)
+    
+    if gonder_btn and yazilacak_metin.strip():
+        try:
+            src = 'auto' if source_lang == 'Otomatik' else DILLER.get(source_lang, 'auto')
+            dest = DILLER.get(target_lang, 'tr')
             
-            st.success(f"🌻 {len(tum_metinler)} metin bloğu bulundu!")
+            with st.spinner("Çevriliyor..."):
+                translated = GoogleTranslator(source=src, target=dest).translate(yazilacak_metin)
             
-            with st.container():
-                c1, c2 = st.columns(2)
-                
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(birlesik_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    try:
-                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                        dest = DILLER.get(st.session_state.target_lang, 'tr')
-                        
-                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                        st.success(translated)
-                    except Exception as e:
-                        st.error(f"🥀 Çeviri hatası: {str(e)}")
+            st.markdown('<div class="sonuc-kutu">', unsafe_allow_html=True)
+            st.markdown(f"**🔄 Çeviri:**\n\n{translated}")
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            st.write("---")
-            if st.button("🔄 Yeni İşlem", use_container_width=True, key=f"yeni_{source_type}"):
-                st.rerun()
-        else:
-            st.warning("🍂 Yeterince net metin bulunamadı.")
-    else:
-        st.warning("🍂 Hiç metin bulunamadı.")
+        except Exception as e:
+            st.markdown('<div class="hata-kutu">', unsafe_allow_html=True)
+            st.error(f"Çeviri hatası: {str(e)}")
+            st.markdown('</div>', unsafe_allow_html=True)
 
+st.markdown("---")
 
-def process_pdf(pdf_source, reader):
-    """PDF işleme ve çeviri"""
-    try:
-        import fitz
-        
-        with st.spinner("📄 PDF okunuyor..."):
-            pdf_bytes = pdf_source.read()
-            pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
-            
-            tum_metinler = []
-            
-            for page_num in range(len(pdf_document)):
-                page = pdf_document[page_num]
-                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-                img_bytes = pix.tobytes("png")
-                
-                image = Image.open(io.BytesIO(img_bytes))
+# ==================== KAMERA ÇEVİRİ ====================
+st.markdown("### 📷 Kamera Çevir")
+
+# OCR modeli - hata kontrolü ile
+try:
+    @st.cache_resource
+    def get_reader():
+        return easyocr.Reader(['en'], gpu=False, download_enabled=True)
+    
+    reader = get_reader()
+    ocr_hazir = True
+except Exception as e:
+    st.error(f"OCR yüklenemedi: {str(e)}")
+    ocr_hazir = False
+
+if ocr_hazir:
+    camera_image = st.camera_input("Fotoğraf çekin", key="kamera")
+    
+    if camera_image is not None:
+        try:
+            with st.spinner("Metin okunuyor..."):
+                image = Image.open(camera_image)
                 img_array = np.array(image)
                 results = reader.readtext(img_array, detail=1)
-                
-                sayfa_metinleri = []
+            
+            if results:
+                tum_metinler = []
                 for bbox, text, prob in results:
-                    if prob >= st.session_state.get('min_confidence', 0.3):
-                        sayfa_metinleri.append(text)
+                    if prob >= min_confidence:
+                        tum_metinler.append(text)
                 
-                if sayfa_metinleri:
-                    tum_metinler.extend(sayfa_metinleri)
-                    st.info(f"📄 Sayfa {page_num + 1}: {len(sayfa_metinleri)} metin bloğu")
-            
-            pdf_document.close()
-        
-        if tum_metinler:
-            birlesik_metin = " ".join(tum_metinler)
-            
-            st.success(f"🌻 Toplam {len(tum_metinler)} metin bloğu bulundu!")
-            
-            with st.container():
-                c1, c2 = st.columns(2)
+                if tum_metinler:
+                    birlesik_metin = " ".join(tum_metinler)
+                    
+                    st.success(f"✅ {len(tum_metinler)} metin bulundu")
+                    
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.markdown("**📝 Orijinal:**")
+                        st.info(birlesik_metin)
+                    
+                    with col_b:
+                        st.markdown("**🔄 Çeviri:**")
+                        try:
+                            src = 'auto' if source_lang == 'Otomatik' else DILLER.get(source_lang, 'auto')
+                            dest = DILLER.get(target_lang, 'tr')
+                            translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
+                            st.success(translated)
+                        except Exception as e:
+                            st.error(f"Çeviri hatası: {str(e)}")
+                else:
+                    st.warning("Yeterince net metin bulunamadı.")
+            else:
+                st.warning("Hiç metin bulunamadı. Daha net çekin.")
                 
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(birlesik_metin[:2000] + "..." if len(birlesik_metin) > 2000 else birlesik_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    try:
-                        src = 'auto' if st.session_state.source_lang == 'Otomatik' else DILLER.get(st.session_state.source_lang, 'auto')
-                        dest = DILLER.get(st.session_state.target_lang, 'tr')
-                        
-                        if len(birlesik_metin) > 4000:
-                            st.warning("📄 Metin çok uzun, ilk 4000 karakter çevriliyor...")
-                            birlesik_metin = birlesik_metin[:4000]
-                        
-                        translated = GoogleTranslator(source=src, target=dest).translate(birlesik_metin)
-                        st.success(translated)
-                    except Exception as e:
-                        st.error(f"🥀 Çeviri hatası: {str(e)}")
-            
-            st.write("---")
-            if st.button("🔄 Yeni PDF Yükle", use_container_width=True, key="yeni_pdf"):
-                st.rerun()
-        else:
-            st.warning("🍂 PDF'de metin bulunamadı.")
-            
-    except ImportError:
-        st.error("📄 PDF kütüphanesi yüklenmemiş.")
-    except Exception as e:
-        st.error(f"📄 PDF hatası: {str(e)}")
+        except Exception as e:
+            st.error(f"Kamera işleme hatası: {str(e)}")
 
-def ceviri_yap(metin, kaynak, hedef):
-    """Manuel metin çeviri fonksiyonu"""
-    try:
-        src = 'auto' if kaynak == 'Otomatik' else DILLER.get(kaynak, 'auto')
-        dest = DILLER.get(hedef, 'tr')
-        translated = GoogleTranslator(source=src, target=dest).translate(metin)
-        return translated
-    except Exception as e:
-        return f"🥀 Çeviri hatası: {str(e)}"
-
-# ==================== SAYFA 1: AYARLAR ====================
-if st.session_state.sayfa == 'ayarlar':
-    
-    st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
-    st.markdown('<div class="nature-subtitle">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown("### ⚙️ Tur Ayarlarınızı Seçin")
-        st.write("---")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            source = st.selectbox("🌍 Kaynak Dil", ['Otomatik'] + list(DILLER.keys()))
-        with col2:
-            target = st.selectbox("🎯 Hedef Dil", list(DILLER.keys()), index=1)
-        
-        min_confidence = st.slider("🔍 Min. Güven Skoru", 0.0, 1.0, 0.3)
-        
-        st.write("---")
-        
-        if st.button("🚀 Tura Başla", use_container_width=True):
-            st.session_state.source_lang = source
-            st.session_state.target_lang = target
-            st.session_state.min_confidence = min_confidence
-            st.session_state.sayfa = 'kamera'
-            st.rerun()
-    
-    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
-    st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
-
-# ==================== SAYFA 2: KAMERA + GALERİ + PDF + YAZI ÇEVİRİ ====================
-elif st.session_state.sayfa == 'kamera':
-    
-    st.markdown('<div class="nature-title">🌿 Melih\'in Sanal Tercümanı</div>', unsafe_allow_html=True)
-    st.markdown('<div class="nature-subtitle">🍃 Sanal Dünyama Hoşgeldiniz</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
-    
-    @st.cache_resource
-    def load_models():
-        reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)
-        return reader
-    
-    reader = load_models()
-    
-    col_back, col_title, col_empty = st.columns([1, 3, 1])
-    with col_back:
-        if st.button("⬅️ Geri"):
-            st.session_state.sayfa = 'ayarlar'
-            st.rerun()
-    with col_title:
-        st.markdown('<div style="text-align:center; color:#2e7d32; font-size:20px; font-weight:600;">📷 TUR MODU</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
-    
-    col_lang1, col_lang2 = st.columns(2)
-    with col_lang1:
-        st.info(f"🌍 Kaynak: {st.session_state.source_lang}")
-    with col_lang2:
-        st.info(f"🎯 Hedef: {st.session_state.target_lang}")
-    
-    st.write("---")
-    
-    # YENİ SEKME: YAZI ÇEVİRİ EKLENDİ
-    tab1, tab2, tab3, tab4 = st.tabs(["📷 Kamera", "🖼️ Galeri", "📄 PDF", "✍️ Yazı Çevir"])
-    
-    # TAB 1: KAMERA - YÖN BAŞLIKLARI KALDIRILDI
-    with tab1:
-        st.markdown("### 🌱 Yazıyı Kameraya Tutun")
-        
-        # YÖN SEÇİMİ KALDIRILDI - DOĞRUDAN KAMERA
-        camera_image = st.camera_input("📸 Fotoğraf Çek", key="camera_full")
-        
-        if camera_image is not None:
-            process_image(camera_image, reader, "camera")
-    
-    # TAB 2: GALERİ - YÖN BAŞLIKLARI KALDIRILDI
-    with tab2:
-        st.markdown("### 🖼️ Galeriden Fotoğraf Yükle")
-        
-        # YÖN SEÇİMİ KALDIRILDI - DOĞRUDAN YÜKLEME
-        uploaded_image = st.file_uploader(
-            "Fotoğraf seçin",
-            type=['png', 'jpg', 'jpeg'],
-            key="galeri"
-        )
-        
-        if uploaded_image is not None:
-            process_image(uploaded_image, reader, "galeri")
-    
-    # TAB 3: PDF
-    with tab3:
-        st.markdown("### 📄 PDF Yükle ve Çevir")
-        
-        uploaded_pdf = st.file_uploader(
-            "PDF seçin",
-            type=['pdf'],
-            key="pdf"
-        )
-        
-        if uploaded_pdf is not None:
-            process_pdf(uploaded_pdf, reader)
-    
-    # TAB 4: YAZI ÇEVİRİ - YENİ EKLENDİ
-    with tab4:
-        st.markdown("### ✍️ Kendi Yazınızı Çevirin")
-        st.write("Aşağıya metninizi yazın, anında çevirelim!")
-        
-        # Metin giriş alanı
-        girilen_metin = st.text_area(
-            "📝 Metninizi buraya yazın:",
-            height=200,
-            placeholder="Örn: Hello, how are you today?"
-        )
-        
-        if girilen_metin:
-            st.write("---")
-            
-            with st.container():
-                c1, c2 = st.columns(2)
-                
-                with c1:
-                    st.markdown("**📝 Orijinal Metin:**")
-                    st.info(girilen_metin)
-                
-                with c2:
-                    st.markdown("**🔄 Çeviri:**")
-                    if st.button("🚀 Çevir", use_container_width=True, key="manuel_cevir"):
-                        with st.spinner("🍂 Çevriliyor..."):
-                            sonuc = ceviri_yap(
-                                girilen_metin,
-                                st.session_state.source_lang,
-                                st.session_state.target_lang
-                            )
-                            st.success(sonuc)
-    
-    st.markdown('<div class="nature-line"></div>', unsafe_allow_html=True)
-    st.caption("💡 Yazıyı net tutun ve yeterli ışık sağlayın")
+st.markdown("---")
+st.caption("🌿 Turda Karşılaştıklarını Anlamak İçin Yazıyı Netleştir")
